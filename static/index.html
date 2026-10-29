@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Empresa Exemplo — ERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/static/styles/app.css">
+  <script src="https://unpkg.com/lucide@latest" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════ -->
+  <aside class="sidebar" aria-label="Menu principal">
+    <div class="brand">
+    </div>
+
+    <div class="nav-group-label">Principal</div>
+    <div class="nav-item active" data-tab="dashboard">
+      <i data-lucide="layout-dashboard"></i>Dashboard
+    </div>
+
+    <div class="nav-group-label">Operação</div>
+    <div class="nav-item" data-tab="estoque"><i data-lucide="boxes"></i>Estoque</div>
+    <div class="nav-item" data-tab="movimentacao"><i data-lucide="arrow-right-left"></i>Movimentações</div>
+    <div class="nav-item" data-tab="pedidos"><i data-lucide="clipboard-list"></i>Pedidos</div>
+    <div class="nav-item" data-tab="cadastros"><i data-lucide="contact"></i>Cadastros</div>
+
+    <div class="nav-group-label">Financeiro</div>
+    <div class="nav-item" data-tab="financeiro"><i data-lucide="wallet"></i>Financeiro</div>
+
+    <div class="nav-group-label">Análise</div>
+    <div class="nav-item" data-tab="relatorios"><i data-lucide="bar-chart-2"></i>Relatórios</div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">A</div>
+        <div>
+          <div class="sidebar-user-name">Administrador</div>
+          <div class="sidebar-user-role">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══════════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="btn sidebar-toggle" id="sidebar-toggle" aria-label="Abrir ou fechar menu">
+          <i data-lucide="panel-left"></i>
+        </button>
+        <div>
+          <div class="title" id="topbar-title">Dashboard</div>
+          <nav class="breadcrumb" id="breadcrumb" aria-label="Localização"></nav>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="search" title="Busca na aba atual">
+          <i data-lucide="search" aria-hidden="true"></i>
+          <input id="global-search" placeholder="Buscar… (Ctrl+K)" aria-label="Busca global" autocomplete="off">
+        </div>
+        <div class="topbar-divider"></div>
+        <button type="button" class="btn btn-icon" id="btn-health" title="Status da API"><i data-lucide="heart-pulse"></i></button>
+        <button type="button" class="btn btn-icon" id="btn-backup" title="Gerar backup"><i data-lucide="database-backup"></i></button>
+        <button type="button" class="btn btn-icon" id="btn-density" title="Alternar densidade"><i data-lucide="rows-3"></i></button>
+        <button type="button" class="btn btn-icon" id="btn-theme" title="Tema claro/escuro"><i data-lucide="moon-star"></i></button>
+        <button type="button" class="btn btn-icon" id="btn-demo" title="Dados demo"><i data-lucide="flask-conical"></i></button>
+        <button type="button" class="btn btn-primary" id="btn-refresh"><i data-lucide="refresh-cw"></i><span class="btn-label">Atualizar</span></button>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ── DASHBOARD ─────────────────────────────────────────────── -->
+      <section class="tab active" id="tab-dashboard">
+        <div class="cards">
+          <div class="card card-accent-purple">
+            <div class="kpi-label"><i data-lucide="package" class="kpi-icon"></i>Produtos</div>
+            <div class="kpi-value" id="db-produtos">—</div>
+          </div>
+          <div class="card card-accent-blue">
+            <div class="kpi-label"><i data-lucide="arrow-right-left" class="kpi-icon"></i>Movimentações</div>
+            <div class="kpi-value" id="db-movimentos">—</div>
+          </div>
+          <div class="card card-accent-green">
+            <div class="kpi-label"><i data-lucide="trending-up" class="kpi-icon"></i>A Receber</div>
+            <div class="kpi-value" id="db-receber">—</div>
+          </div>
+          <div class="card card-accent-red">
+            <div class="kpi-label"><i data-lucide="trending-down" class="kpi-icon"></i>A Pagar</div>
+            <div class="kpi-value" id="db-pagar">—</div>
+          </div>
+          <div class="card card-accent-yellow">
+            <div class="kpi-label"><i data-lucide="landmark" class="kpi-icon"></i>Saldo Projetado</div>
+            <div class="kpi-value" id="db-saldo">—</div>
+          </div>
+          <div class="card">
+            <div class="kpi-label"><i data-lucide="clock" class="kpi-icon"></i>Pedidos Pendentes</div>
+            <div class="kpi-value" id="db-pedidos-pendentes">—</div>
+          </div>
+          <div class="card">
+            <div class="kpi-label"><i data-lucide="check-circle" class="kpi-icon"></i>Pedidos Faturados</div>
+            <div class="kpi-value" id="db-pedidos-faturados">—</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Composição por Categoria</div>
+                <div class="panel-sub">Distribuição do catálogo atual</div>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-categories"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Visão Financeira</div>
+                <div class="panel-sub">A pagar × receber × pago no mês</div>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-finance"></canvas></div>
+          </div>
+        </div>
+
+        <div class="panel cashflow-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Fluxo de Caixa</div>
+              <div class="panel-sub">Entradas e saídas já liquidadas</div>
+            </div>
+            <div class="panel-header-actions">
+              <select id="cashflow-granularity" class="select-sm">
+                <option value="day">Por dia</option>
+                <option value="week" selected>Por semana</option>
+              </select>
+              <button class="btn" id="btn-cashflow-refresh"><i data-lucide="refresh-cw"></i>Atualizar</button>
+            </div>
+          </div>
+          <div class="cashflow-chart-wrap"><canvas id="chart-cashflow"></canvas></div>
+          <div id="cashflow-body" class="cashflow-body"></div>
+        </div>
+      </section>
+
+      <!-- ── ESTOQUE ────────────────────────────────────────────────── -->
+      <section class="tab" id="tab-estoque">
+        <div class="panel" id="panel-products">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Produtos em Estoque</div>
+              <div class="panel-sub">Cadastro, filtro e exclusão em lote</div>
+            </div>
+            <button class="btn btn-primary" id="btn-new-product"><i data-lucide="plus"></i>Novo Produto</button>
+          </div>
+          <div class="toolbar">
+            <input id="filter-q" placeholder="Buscar por SKU ou nome…">
+            <select id="filter-category">
+              <option value="">Todas categorias</option>
+              <option>Espuma Raw</option>
+              <option>Espuma Premium</option>
+              <option>Mobília</option>
+              <option>Objetos</option>
+            </select>
+            <select id="filter-stock">
+              <option value="">Todos os níveis</option>
+              <option value="critical">⚠ Crítico</option>
+              <option value="warning">⚡ Atenção</option>
+              <option value="normal">✓ Normal</option>
+            </select>
+            <button class="btn btn-filter" id="btn-product-filter"><i data-lucide="filter"></i>Filtrar</button>
+            <button class="btn" id="btn-product-reset"><i data-lucide="x"></i>Limpar</button>
+            <button class="btn" id="btn-products-export"><i data-lucide="download"></i>CSV</button>
+          </div>
+          <div class="batch-bar" id="products-batch-bar">
+            <span><i data-lucide="check-square"></i> <strong id="products-selected-count">0</strong> selecionado(s)</span>
+            <div>
+              <button class="btn" id="btn-product-clear-selection">Limpar seleção</button>
+              <button class="btn btn-danger" id="btn-product-delete-selected"><i data-lucide="trash-2"></i>Excluir em lote</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:36px"></th>
+                  <th>SKU</th>
+                  <th>Produto</th>
+                  <th>Categoria</th>
+                  <th>Densidade</th>
+                  <th>Qtd m³</th>
+                  <th>Preço</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="products-pagination"></div>
+        </div>
+      </section>
+
+      <!-- ── MOVIMENTAÇÕES ──────────────────────────────────────────── -->
+      <section class="tab" id="tab-movimentacao">
+        <div class="panel" id="panel-movements">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Movimentações de Estoque</div>
+              <div class="panel-sub">Entradas, saídas e ajustes</div>
+            </div>
+            <button class="btn btn-primary" id="btn-new-movement"><i data-lucide="plus"></i>Nova Movimentação</button>
+          </div>
+          <div class="toolbar">
+            <input id="mov-filter-q" placeholder="SKU, documento, parte ou NF…">
+            <select id="mov-filter-type">
+              <option value="">Todos os tipos</option>
+              <option value="Entrada">Entrada</option>
+              <option value="Saída">Saída</option>
+              <option value="Ajuste">Ajuste</option>
+            </select>
+            <input id="mov-filter-start" type="date" title="Data inicial">
+            <input id="mov-filter-end" type="date" title="Data final">
+            <button class="btn btn-filter" id="btn-mov-filter"><i data-lucide="filter"></i>Filtrar</button>
+            <button class="btn" id="btn-mov-reset"><i data-lucide="x"></i>Limpar</button>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th><th>Tipo</th><th>Documento</th><th>SKU</th>
+                  <th>Volume m³</th><th>Unit.</th><th>Total</th>
+                  <th>Parte</th><th>NF</th><th>Loc.</th><th>Lote</th>
+                </tr>
+              </thead>
+              <tbody id="movements-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="movements-pagination"></div>
+        </div>
+      </section>
+
+      <!-- ── PEDIDOS ────────────────────────────────────────────────── -->
+      <section class="tab" id="tab-pedidos">
+        <div class="panel" id="panel-orders">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Pedidos</div>
+              <div class="panel-sub">Fluxo completo: rascunho → aprovado → faturado</div>
+            </div>
+            <button class="btn btn-primary" id="btn-new-order"><i data-lucide="plus"></i>Novo Pedido</button>
+          </div>
+          <div class="toolbar">
+            <select id="order-type-filter">
+              <option value="">Todos os tipos</option>
+              <option value="Venda">Venda</option>
+              <option value="Compra">Compra</option>
+            </select>
+            <select id="order-status-filter">
+              <option value="">Todos os status</option>
+              <option value="Rascunho">Rascunho</option>
+              <option value="Aprovado">Aprovado</option>
+              <option value="Faturado">Faturado</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+            <button class="btn btn-filter" id="btn-order-filter"><i data-lucide="filter"></i>Filtrar</button>
+            <button class="btn" id="btn-orders-export"><i data-lucide="download"></i>CSV</button>
+            <button class="btn" id="btn-orders-print"><i data-lucide="printer"></i>PDF</button>
+          </div>
+          <div class="batch-bar" id="orders-batch-bar">
+            <span><i data-lucide="check-square"></i> <strong id="orders-selected-count">0</strong> rascunhos selecionados</span>
+            <div class="batch-actions">
+              <button type="button" class="btn" id="btn-orders-select-page">Selecionar página</button>
+              <button type="button" class="btn" id="btn-orders-select-all-filtered">Todos do filtro</button>
+              <button type="button" class="btn" id="btn-orders-clear-selection">Limpar</button>
+              <button type="button" class="btn btn-primary" id="btn-orders-batch-approve"><i data-lucide="check"></i>Aprovar selecionados</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table id="orders-table">
+              <thead>
+                <tr>
+                  <th style="width:36px"></th>
+                  <th class="th-sort" data-sort="order_code">Código</th>
+                  <th class="th-sort" data-sort="order_date">Data</th>
+                  <th>Entrega</th>
+                  <th>Tipo</th>
+                  <th>Status</th>
+                  <th>Cliente / Fornecedor</th>
+                  <th>Itens</th>
+                  <th class="th-sort" data-sort="total_value">Total</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="orders-pagination"></div>
+        </div>
+      </section>
+
+      <!-- ── CADASTROS ──────────────────────────────────────────────── -->
+      <section class="tab" id="tab-cadastros">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Clientes e Fornecedores</div>
+              <div class="panel-sub">Vínculos com pedidos e financeiro</div>
+            </div>
+            <button class="btn btn-primary" id="btn-new-party"><i data-lucide="user-plus"></i>Novo Cadastro</button>
+          </div>
+          <div class="toolbar">
+            <input id="party-filter-q" placeholder="Buscar por nome ou documento…">
+            <select id="party-filter-kind">
+              <option value="">Todos</option>
+              <option value="Cliente">Clientes</option>
+              <option value="Fornecedor">Fornecedores</option>
+            </select>
+            <button class="btn btn-filter" id="btn-party-filter"><i data-lucide="filter"></i>Filtrar</button>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tipo</th><th>Nome</th><th>Documento</th>
+                  <th>Telefone</th><th>E-mail</th><th style="width:120px"></th>
+                </tr>
+              </thead>
+              <tbody id="parties-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── FINANCEIRO ─────────────────────────────────────────────── -->
+      <section class="tab" id="tab-financeiro">
+        <div class="cards">
+          <div class="card card-accent-red">
+            <div class="kpi-label"><i data-lucide="trending-down" class="kpi-icon"></i>A Pagar</div>
+            <div class="kpi-value" id="kpi-pagar">—</div>
+          </div>
+          <div class="card card-accent-green">
+            <div class="kpi-label"><i data-lucide="trending-up" class="kpi-icon"></i>A Receber</div>
+            <div class="kpi-value" id="kpi-receber">—</div>
+          </div>
+          <div class="card card-accent-blue">
+            <div class="kpi-label"><i data-lucide="check-circle" class="kpi-icon"></i>Pago no Mês</div>
+            <div class="kpi-value" id="kpi-pago-mes">—</div>
+          </div>
+          <div class="card card-accent-yellow">
+            <div class="kpi-label"><i data-lucide="landmark" class="kpi-icon"></i>Saldo Projetado</div>
+            <div class="kpi-value" id="kpi-saldo-projetado">—</div>
+          </div>
+          <div class="card card-accent-orange">
+            <div class="kpi-label"><i data-lucide="alert-triangle" class="kpi-icon"></i>Inadimplência</div>
+            <div class="kpi-value" id="kpi-inadimplencia">—</div>
+            <div class="kpi-sub" id="kpi-inadimplencia-qtd">0 títulos vencidos</div>
+          </div>
+        </div>
+
+        <div class="panel aging-panel">
+          <div class="panel-header">
+            <div class="panel-title">Aging de Inadimplência</div>
+          </div>
+          <div class="aging-grid">
+            <div class="aging-item">
+              <div class="aging-label">0 – 30 dias</div>
+              <div class="aging-value" id="aging-0-30">R$ 0</div>
+            </div>
+            <div class="aging-sep"></div>
+            <div class="aging-item">
+              <div class="aging-label">31 – 60 dias</div>
+              <div class="aging-value warning" id="aging-31-60">R$ 0</div>
+            </div>
+            <div class="aging-sep"></div>
+            <div class="aging-item">
+              <div class="aging-label">61+ dias</div>
+              <div class="aging-value danger" id="aging-61-plus">R$ 0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-finance">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Lançamentos</div>
+              <div class="panel-sub">Baixa individual, em lote e conciliação</div>
+            </div>
+            <div class="panel-header-actions">
+              <button class="btn" id="btn-finance-export"><i data-lucide="download"></i>CSV</button>
+              <button class="btn btn-primary" id="btn-new-finance"><i data-lucide="plus"></i>Novo Lançamento</button>
+            </div>
+          </div>
+          <div class="toolbar">
+            <input id="finance-q" placeholder="Descrição ou parte…">
+            <select id="finance-type">
+              <option value="">Todos os tipos</option>
+              <option value="Pagar">A Pagar</option>
+              <option value="Receber">A Receber</option>
+            </select>
+            <select id="finance-status">
+              <option value="">Todos os status</option>
+              <option value="Aberto">Aberto</option>
+              <option value="Pago">Pago</option>
+              <option value="Vencido">Vencido</option>
+            </select>
+            <select id="finance-reconciled">
+              <option value="">Conciliação: todos</option>
+              <option value="true">Conciliados</option>
+              <option value="false">Não conciliados</option>
+            </select>
+            <input id="finance-start" type="date" title="Vencimento inicial">
+            <input id="finance-end" type="date" title="Vencimento final">
+            <button class="btn btn-filter" id="btn-finance-filter"><i data-lucide="filter"></i>Filtrar</button>
+            <button class="btn" id="btn-finance-reset"><i data-lucide="x"></i>Limpar</button>
+          </div>
+          <div class="batch-bar" id="finance-batch-bar">
+            <span><i data-lucide="check-square"></i> <strong id="finance-selected-count">0</strong> selecionado(s)</span>
+            <div class="batch-actions">
+              <button type="button" class="btn" id="btn-finance-select-page">Selecionar página</button>
+              <button type="button" class="btn" id="btn-finance-clear-selection">Limpar seleção</button>
+              <button type="button" class="btn btn-warning" id="btn-finance-batch-pay"><i data-lucide="check"></i>Baixar selecionados</button>
+              <button type="button" class="btn" id="btn-finance-batch-reconcile"><i data-lucide="link"></i>Conciliar</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:36px"></th>
+                  <th>Tipo</th><th>Vencimento</th><th>Descrição</th>
+                  <th>Parte</th><th>Categoria</th><th>Valor</th>
+                  <th>Status</th><th>Conc.</th><th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="finance-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="finance-pagination"></div>
+        </div>
+      </section>
+
+      <!-- ── RELATÓRIOS ─────────────────────────────────────────────── -->
+      <section class="tab" id="tab-relatorios">
+        <div class="cards" id="report-kpis">
+          <div class="card card-accent-purple">
+            <div class="kpi-label"><i data-lucide="package" class="kpi-icon"></i>Valor Total Estoque</div>
+            <div class="kpi-value" id="rpt-stock-value">—</div>
+          </div>
+          <div class="card">
+            <div class="kpi-label"><i data-lucide="alert-circle" class="kpi-icon"></i>Itens Críticos</div>
+            <div class="kpi-value danger" id="rpt-critical">—</div>
+          </div>
+          <div class="card">
+            <div class="kpi-label"><i data-lucide="alert-triangle" class="kpi-icon"></i>Itens em Atenção</div>
+            <div class="kpi-value warning" id="rpt-warning">—</div>
+          </div>
+          <div class="card card-accent-green">
+            <div class="kpi-label"><i data-lucide="trending-up" class="kpi-icon"></i>Vendas Faturadas</div>
+            <div class="kpi-value" id="rpt-sales-value">—</div>
+          </div>
+          <div class="card">
+            <div class="kpi-label"><i data-lucide="clock" class="kpi-icon"></i>Pedidos Pendentes</div>
+            <div class="kpi-value" id="rpt-pending">—</div>
+          </div>
+        </div>
+        <div class="charts-grid rpt-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Estoque Crítico e em Atenção</div>
+                <div class="panel-sub">Produtos abaixo do mínimo ou próximos do limite</div>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Status</th><th>SKU</th><th>Produto</th><th>Categoria</th><th>Qtd m³</th><th>Mínimo</th><th>Valor</th></tr></thead>
+                <tbody id="rpt-stock-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Top 5 Clientes</div>
+                <div class="panel-sub">Por valor total faturado</div>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>#</th><th>Cliente</th><th>Total Faturado</th></tr></thead>
+                <tbody id="rpt-customers-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /content -->
+  </main><!-- /main -->
+
+  <!-- ═══ MODAIS ══════════════════════════════════════════════════════ -->
+
+  <!-- Modal: Produto -->
+  <div class="modal-overlay" id="modal-product">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-product-title">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-product-title">Novo Produto</div>
+        <button type="button" class="btn btn-icon" data-close-modal="modal-product" aria-label="Fechar"><i data-lucide="x"></i></button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>SKU</label><input id="p-sku" placeholder="ESP-001"></div>
+        <div class="form-group"><label>Nome do Produto</label><input id="p-name" placeholder="Espuma D28 Premium"></div>
+        <div class="form-group"><label>Categoria</label>
+          <select id="p-category"><option>Espuma Raw</option><option>Espuma Premium</option><option>Mobília</option><option>Objetos</option></select>
+        </div>
+        <div class="form-group"><label>Densidade (kg/m³)</label><input id="p-density" type="number" placeholder="28"></div>
+        <div class="form-group"><label>Quantidade (m³)</label><input id="p-qty" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label>Custo por m³ (R$)</label><input id="p-cost" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label>Custo Médio Ponderado (R$)</label><input id="p-avg-cost" type="number" step="0.01" placeholder="Calculado auto por entrada"></div>
+        <div class="form-group"><label>Preço de Venda / m³ (R$)</label><input id="p-sell" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label>Estoque Mínimo (m³)</label><input id="p-min" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="form-group form-full"><label>Fornecedor</label><input id="p-supplier" placeholder="Nome do fornecedor"></div>
+        <div class="form-group form-full"><label>Observações</label><textarea id="p-notes" rows="2" placeholder="Notas internas sobre o produto…"></textarea></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" data-close-modal="modal-product">Cancelar</button>
+        <button class="btn btn-primary" id="btn-save-product"><i data-lucide="save"></i>Salvar Produto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Movimentação -->
+  <div class="modal-overlay" id="modal-movement">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-movement-title">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-movement-title">Nova Movimentação</div>
+        <button type="button" class="btn btn-icon" data-close-modal="modal-movement" aria-label="Fechar"><i data-lucide="x"></i></button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Tipo de Movimentação</label>
+          <select id="m-type"><option>Entrada</option><option>Saída</option><option>Ajuste</option></select>
+        </div>
+        <div class="form-group"><label>Data</label><input id="m-date" type="date"></div>
+        <div class="form-group"><label>Documento</label><input id="m-doc" placeholder="NR-2026-001"></div>
+        <div class="form-group"><label>SKU do Produto</label><input id="m-sku" list="sku-list" placeholder="ESP-001"></div>
+        <div class="form-group"><label>Volume (m³)</label><input id="m-vol" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label>Preço Unitário (R$)</label><input id="m-unit" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label>Total (R$)</label><input id="m-total" type="number" step="0.01" placeholder="Calculado auto"></div>
+        <div class="form-group"><label>Localização no Armazém</label><input id="m-loc" placeholder="A-01"></div>
+        <div class="form-group"><label>Lote / Batch</label><input id="m-batch" placeholder="LOTE-2026-01"></div>
+        <div class="form-group"><label>Parte (cliente/fornec.)</label><input id="m-party" placeholder="Nome da parte"></div>
+        <div class="form-group"><label>Nota Fiscal (NF)</label><input id="m-nf" placeholder="NF-000001"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" data-close-modal="modal-movement">Cancelar</button>
+        <button class="btn btn-primary" id="btn-save-movement"><i data-lucide="save"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Lançamento Financeiro -->
+  <div class="modal-overlay" id="modal-finance">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-finance-title">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-finance-title">Novo Lançamento Financeiro</div>
+        <button type="button" class="btn btn-icon" data-close-modal="modal-finance" aria-label="Fechar"><i data-lucide="x"></i></button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Tipo</label>
+          <select id="f-type"><option value="Pagar">A Pagar</option><option value="Receber">A Receber</option></select>
+        </div>
+        <div class="form-group"><label>Vencimento</label><input id="f-due" type="date"></div>
+        <div class="form-group form-full"><label>Descrição</label><input id="f-description" placeholder="Ex: Pagamento fornecedor EspumaBR"></div>
+        <div class="form-group"><label>Parte</label><input id="f-party" placeholder="Nome do cliente ou fornecedor"></div>
+        <div class="form-group"><label>Categoria</label><input id="f-category" placeholder="Ex: Matéria-prima"></div>
+        <div class="form-group"><label>Valor (R$)</label><input id="f-amount" type="number" step="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="f-status"><option value="Aberto">Aberto</option><option value="Pago">Pago</option><option value="Vencido">Vencido</option></select>
+        </div>
+        <div class="form-group"><label>Plano de Contas</label><select id="f-chart-account"></select></div>
+        <div class="form-group"><label>Centro de Custo</label><select id="f-cost-center"></select></div>
+        <div class="form-group form-full"><label>Observações</label><textarea id="f-notes" rows="2" placeholder="Notas internas…"></textarea></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" data-close-modal="modal-finance">Cancelar</button>
+        <button class="btn btn-primary" id="btn-save-finance"><i data-lucide="save"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Pedido -->
+  <div class="modal-overlay" id="modal-order">
+    <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="modal-order-title">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-order-title">Novo Pedido</div>
+        <!-- title updated dynamically by openEditOrder() -->
+        <button type="button" class="btn btn-icon" data-close-modal="modal-order" aria-label="Fechar"><i data-lucide="x"></i></button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Código do Pedido</label><input id="o-code" placeholder="PED-2026-0001"></div>
+        <div class="form-group"><label>Data</label><input id="o-date" type="date"></div>
+        <div class="form-group"><label>Tipo</label>
+          <select id="o-type"><option value="Venda">Venda</option><option value="Compra">Compra</option></select>
+        </div>
+        <div class="form-group"><label>Status</label>
+          <select id="o-status"><option value="Rascunho">Rascunho</option><option value="Aprovado">Aprovado</option></select>
+        </div>
+        <div class="form-group"><label>Vincular Cadastro</label><select id="o-party-select"></select></div>
+        <div class="form-group form-full"><label>Cliente / Fornecedor (livre)</label><input id="o-party" placeholder="Nome quando não há cadastro vinculado"></div>
+        <div class="form-group"><label>Entrega Prevista</label><input id="o-delivery" type="date"></div>
+        <div class="form-group"><label>Desconto do Pedido (%)</label><input id="o-discount-order" type="number" step="0.01" placeholder="0"></div>
+      </div>
+
+      <div class="order-lines-header">
+        <strong>Itens do Pedido</strong>
+        <button type="button" class="btn" id="btn-order-line-add"><i data-lucide="plus"></i>Adicionar Item</button>
+      </div>
+      <div class="table-scroll">
+        <table class="order-lines-table">
+          <thead><tr><th>SKU</th><th>Volume (m³)</th><th>Preço (R$)</th><th>Desc. %</th><th>Subtotal</th><th></th></tr></thead>
+          <tbody id="order-lines-tbody"></tbody>
+        </table>
+      </div>
+      <div class="order-totals-row" role="region" aria-label="Resumo de valores">
+        <div><span class="muted">Subtotal:</span> <strong id="order-sum-lines" class="mono">R$ 0,00</strong></div>
+        <div><span class="muted">Total com desconto:</span> <strong id="order-grand-total" class="mono order-grand">R$ 0,00</strong></div>
+      </div>
+      <div class="form-group form-full" style="margin-top:12px">
+        <label>Notas do Pedido</label>
+        <textarea id="o-notes" rows="2" placeholder="Observações sobre o pedido…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" data-close-modal="modal-order">Cancelar</button>
+        <button class="btn btn-primary" id="btn-save-order"><i data-lucide="save"></i>Salvar Pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Cadastro -->
+  <div class="modal-overlay" id="modal-party">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="party-modal-title">
+      <div class="modal-head">
+        <div class="modal-title" id="party-modal-title">Novo Cliente / Fornecedor</div>
+        <button type="button" class="btn btn-icon" data-close-modal="modal-party" aria-label="Fechar"><i data-lucide="x"></i></button>
+      </div>
+      <input type="hidden" id="party-edit-id">
+      <div class="form-grid">
+        <div class="form-group"><label>Tipo</label>
+          <select id="party-kind"><option value="Cliente">Cliente</option><option value="Fornecedor">Fornecedor</option></select>
+        </div>
+        <div class="form-group form-full"><label>Nome</label><input id="party-name" placeholder="Nome completo ou razão social"></div>
+        <div class="form-group"><label>CPF / CNPJ</label><input id="party-doc" placeholder="000.000.000-00"></div>
+        <div class="form-group"><label>Telefone</label><input id="party-phone" placeholder="(00) 00000-0000"></div>
+        <div class="form-group"><label>E-mail</label><input id="party-email" placeholder="contato@example.invalid"></div>
+        <div class="form-group form-full"><label>Observações</label><textarea id="party-notes" rows="2" placeholder="Notas internas…"></textarea></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" data-close-modal="modal-party">Cancelar</button>
+        <button class="btn btn-primary" id="btn-save-party"><i data-lucide="save"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Onboarding -->
+  <div class="modal-overlay" id="modal-onboarding">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-ob-title">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-ob-title">Primeiro Acesso — Empresa Exemplo ERP</div>
+        <button type="button" class="btn btn-icon" data-close-modal="modal-onboarding" aria-label="Fechar"><i data-lucide="x"></i></button>
+      </div>
+      <p id="ob-step" class="muted">Passo 1 de 4</p>
+      <div id="ob-body">
+        <p>Defina uma <strong>X-API-Key</strong> no servidor (<code>ERP_API_KEY</code>). Se estiver configurada, insira a mesma chave abaixo.</p>
+        <input id="ob-api-key" placeholder="Cole a API Key aqui, se necessário">
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-ob-prev" disabled>Anterior</button>
+        <button class="btn btn-primary" id="btn-ob-next">Próximo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MOBILE NAV ══════════════════════════════════════════════════ -->
+  <nav class="mobile-nav" aria-label="Navegação inferior">
+    <button type="button" class="mobile-nav-item active" data-tab="dashboard" aria-label="Dashboard"><i data-lucide="layout-dashboard"></i><span>Início</span></button>
+    <button type="button" class="mobile-nav-item" data-tab="estoque" aria-label="Estoque"><i data-lucide="boxes"></i><span>Estoque</span></button>
+    <button type="button" class="mobile-nav-item" data-tab="pedidos" aria-label="Pedidos"><i data-lucide="clipboard-list"></i><span>Pedidos</span></button>
+    <button type="button" class="mobile-nav-item" data-tab="financeiro" aria-label="Financeiro"><i data-lucide="wallet"></i><span>Financ.</span></button>
+    <button type="button" class="mobile-nav-item" data-tab="movimentacao" aria-label="Movimentações"><i data-lucide="arrow-right-left"></i><span>Mov.</span></button>
+    <button type="button" class="mobile-nav-item" data-tab="cadastros" aria-label="Cadastros"><i data-lucide="contact"></i><span>Cad.</span></button>
+    <button type="button" class="mobile-nav-item" data-tab="relatorios" aria-label="Relatórios"><i data-lucide="bar-chart-2"></i><span>Relat.</span></button>
+  </nav>
+
+  <datalist id="sku-list"></datalist>
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="/static/js/main.js"></script>
+</body>
+</html>
+
